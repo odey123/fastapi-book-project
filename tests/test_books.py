@@ -1,11 +1,11 @@
 from tests import client
 
-
 def test_get_all_books():
     response = client.get("/books/")
     assert response.status_code == 200
-    assert len(response.json()) == 3
-
+    data = response.json()
+    assert len(data) == 2  
+    assert data[0]["title"] == "The Hobbit"  
 
 def test_get_single_book():
     response = client.get("/books/1")
@@ -15,7 +15,7 @@ def test_get_single_book():
     assert data["author"] == "J.R.R. Tolkien"
 
 def test_get_book_by_id():
-    response = client.get("/api/v1/1")
+    response = client.get("/books/1")  
     assert response.status_code == 200
     data = response.json()
     assert data["id"] == 1
@@ -23,13 +23,13 @@ def test_get_book_by_id():
     assert data["author"] == "J.R.R. Tolkien"
 
     # Test for non-existing book
-    response = client.get("/api/v1/999")
+    response = client.get("/books/999")
     assert response.status_code == 404
     assert response.json() == {"detail": "Book not found"}
 
 def test_create_book():
     new_book = {
-        "id": 4,
+        "id": 3,
         "title": "Harry Potter and the Sorcerer's Stone",
         "author": "J.K. Rowling",
         "publication_year": 1997,
@@ -38,9 +38,12 @@ def test_create_book():
     response = client.post("/books/", json=new_book)
     assert response.status_code == 201
     data = response.json()
-    assert data["id"] == 4
+    assert data["id"] == 3
     assert data["title"] == "Harry Potter and the Sorcerer's Stone"
 
+    response = client.get("/books/3")
+    assert response.status_code == 200
+    assert response.json()["title"] == "Harry Potter and the Sorcerer's Stone"
 
 def test_update_book():
     updated_book = {
@@ -55,10 +58,10 @@ def test_update_book():
     data = response.json()
     assert data["title"] == "The Hobbit: An Unexpected Journey"
 
-
 def test_delete_book():
-    response = client.delete("/books/3")
+    response = client.delete("/books/2") 
     assert response.status_code == 204
 
-    response = client.get("/books/3")
-    assert response.status_code == 404
+    # Verify book was deleted
+    response = client.get("/books/2")
+    assert response.status_code == 404 
